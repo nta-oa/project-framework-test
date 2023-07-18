@@ -1,0 +1,16 @@
+clean-app         Clean the intermediate files and artifact stored locally during build
+build-app         Build the application artefact (archive, docker image, etc.)
+scan-app          Check the built application artefact for vulnerability
+
+hadolint-test     Verify the integrity of the Dockerfile; if any
+local-test        Run the application locally for manual testing; if relevent
+
+deploy-app        Push the application artefact
+deploy-apigee     Push the module API as proxy in Apigee; if the configuration is set
+
+The supported module types are:
+------------------------------
+gcr               Module to deploy an API on Google Cloud Run. It must contain a Dockerfile
+gcf               Module to deploy a Google Cloud Function.
+gcb               Module to deploy Google Cloud Build Triggers that run Python code.
+                  Dockerfile is optional as a specialized image might not be needed
