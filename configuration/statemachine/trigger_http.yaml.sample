@@ -1,0 +1,20 @@
+# Example file to show what a trigger config looks like.
+# The name of the trigger is generated from the file.
+# It becomes <filename>_<env>.
+id: example_trigger_http_v1_${project_env}
+group: IT-GLOBAL-GCP-BTDP_DATAENG_L3_DATASERVICES@loreal.com
+timeframe:
+  days: 0
+  hours: 0
+  minutes: 5
+gbos:
+- itg-btdpfront-gbl-ww-${project_env}.btdp_ds_c1_052_common_eu_${project_env}.location_v1
+on_success:
+  type: http
+  url: https://my_url.com
+  headers:
+    test_key: test_value
+  method: POST
+  body: '{"body_key": "body_value"}'
+  auth:
+    type: OAUTH2

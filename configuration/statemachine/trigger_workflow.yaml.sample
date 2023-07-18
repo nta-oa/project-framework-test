@@ -1,0 +1,14 @@
+# Example file to show what a trigger config looks like.
+# The name of the trigger is generated from the file.
+# It becomes <filename>_<env>.
+group: <group>  # This is the group that will be allowed to modify or delete the trigger
+timeframe:
+  days: 0
+  hours: 0
+  minutes: 5
+gbos:
+- itg-btdpfront-gbl-ww-${project_env}.btdp_ds_c1_052_common_eu_${project_env}.location_v1
+on_success:
+  type: workflow
+  workflow: workflow_file
+  argument: '{}'
