@@ -13,6 +13,7 @@ The init configuration consists mostly in listing the enabled APIs. In this purp
 ## Directory structure
 
 This directory is a Terraform module that manages the CICD for the repository.
+
 ```
 .
 ├── Makefile                              Makefile contains a target to initialize the project infrastructure with terraform.
@@ -29,14 +30,16 @@ This directory is a Terraform module that manages the CICD for the repository.
 
 ## Usage of Makefile
 
-* Makefile: contains a target to initialize the project infrastructure.
+- Makefile: contains a target to initialize the project infrastructure.
 
 In the current setup/init folder, just run:
+
 ```shell
 make all
 ```
 
 You can also trigger the init from the top root folder of the project by doing:
+
 ```shell
 make init
 ```

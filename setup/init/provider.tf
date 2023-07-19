@@ -6,21 +6,34 @@
 #                                             |_|
 # ======================================================================================== #
 terraform {
-  required_version = "~> 1.3"
+  required_version = "~> 1.0"
   backend "gcs" {}
-
   required_providers {
-    google = {
-      source = "google"
-      version = "<=4.65.2"
+    google-beta = {
+      source  = "hashicorp/google-beta"
+      version = "~> 4.0.0"
+    }
+    null = {
+      version = "~> 3.2.0"
     }
   }
 }
 
-provider "google" {
+provider "google-beta" {
   project = local.project
 }
 
 data "google_project" "default" {
-  provider = google
+  provider = google-beta
+}
+
+resource "null_resource" "storage_sa_creation" {
+  provider = null
+  provisioner "local-exec" {
+    command = <<EOT
+      curl -X GET -H "Authorization: Bearer ${local.access_token}" \
+        "https://storage.googleapis.com/storage/v1/projects/${local.project}/serviceAccount"
+    EOT
+  }
+  depends_on = [google_project_service.apis]
 }

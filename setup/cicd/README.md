@@ -4,14 +4,12 @@
 
 This README aims to describe the CICD setup for the repository.
 
-
 ## What is CI CD
 
 CICD (Continous Integration Continuous Development) is a method to automate the stages of software development.
 These stages are 'build', 'test' and 'deploy'.
 The main goal is to automate the deployment of the code pushed in the repository be any Data engineers; in each environment from the Quality Acceptance (QA), then Pre-Production (NP), and finally to Production (pd).
 The technologies used are Google Cloud Build (GCB), Terraform and Makefile.
-
 
 #### Google Cloud Build
 
@@ -24,10 +22,9 @@ Terraform is a tool for building, changing, and versioning infrastructure safely
 The infrastructure is defined as a code, the IaC (Infrastructure as code). The programming language is HCL (HashiCorp Configuration Language).
 Terraform is used to generate the GCP triggers in every environements.
 
-
 #### Make
 
-Make is a build automation tool, for software development purposes. It allows the execution of tasks from source code, by reading files called ```Makefiles```.
+Make is a build automation tool, for software development purposes. It allows the execution of tasks from source code, by reading files called `Makefiles`.
 Targets are the steps of the building process, they are defined in the Makefile files, telling Make how to execute each of them, and in which specific order.
 
 ## Requirements
@@ -62,14 +59,13 @@ This directory is a Terraform module that manages the CICD for the repository.
 └── variables.tf                          Contains the Makefile injected terraform variables.
 ```
 
-
 ## CICD Workflow
 
-action in GitHub | actions in Cloudbuild
------------------|----------------------
-__Pull Request from feature branch to *develop*__ | starts builds to performs tasks such as Static Analysis and Unit tests.
-__Merge feature branch to *develop*__ | starts builds to performs tasks into the *qa* environment (use case and/or btdp). If successful, starts builds into the *np* environments.
-__Merge *develop* to *master*__ | starts builds to perform tasks into the *pd* environment.
+| action in GitHub                                  | actions in Cloudbuild                                                                                                                      |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Pull Request from feature branch to _develop_** | starts builds to performs tasks such as Static Analysis and Unit tests.                                                                    |
+| **Merge feature branch to _develop_**             | starts builds to performs tasks into the _qa_ environment (use case and/or btdp). If successful, starts builds into the _np_ environments. |
+| **Merge _develop_ to _master_**                   | starts builds to perform tasks into the _pd_ environment.                                                                                  |
 
 > nota: for testing purpose, there are also triggers for the `dv` environment. They can be invoked manually from the Cloud Build console by clicking the RUN button.
 
@@ -80,7 +76,7 @@ __Merge *develop* to *master*__ | starts builds to perform tasks into the *pd* e
 Tasks in CloudBuild are executed by the CloudBuild Service Account.
 In order to perform those tasks, IAM roles must be granted to the Service Account.
 
-The list of roles is set in the ```locals.tf``` file.
+The list of roles is set in the `locals.tf` file.
 
 > warning: only management and Lead developers can accept added roles.
 
@@ -88,17 +84,23 @@ The list of roles is set in the ```locals.tf``` file.
 
 The CICD setup is managed by terraform and the configuration in terraform. The configuration can be overridden by the cicd.json environments file.
 The cicd.json environments file can contains the following variables:
-* zone: The GCP zone (https://cloud.google.com/compute/docs/regions-zones). Default is europe-west1-b.
-* region: The GCP region (https://cloud.google.com/compute/docs/regions-zones). The Default is calculated from the previous zone.
-* multiregion: The GCP multi region. It can be "eu" or "us". It's calculated from the previous region.
-* triggers_env: The trigger environment configuration. It's a map of the environment and the trigger configuration for each one. A trigger configuration is defined by the name of the branch the triggers occurs and the two options "disabled" (if set to true, the triggers can only be triggered manually) and "next" (if set to something the branch in the "next" option will be triggered automatically at the end of the current CI/CD. The pr option indicates if a trigger is to be created for pull requests targetting this environment and branch.
+
+- zone: The GCP zone (https://cloud.google.com/compute/docs/regions-zones). Default is europe-west1-b.
+- region: The GCP region (https://cloud.google.com/compute/docs/regions-zones). The Default is calculated from the previous zone.
+- multiregion: The GCP multi region. It can be "eu" or "us". It's calculated from the previous region.
+- pullrequest_branch: The branch used to create the pull request triggers. Default is develop branch.
+- pullrequest_env: The environments project used to run the pull request triggers. Default is qa environment.
+- triggers_env: The trigger environment configuration. It's a map of the environment and the trigger configuration for each one. A trigger configuration is defined by the name of the branch the triggers occurs and the two options "disabled" (if set to true, the triggers can only be triggered manually) and "next" (if set to something the branch in the "next" option will be triggered automatically at the end of the current CI/CD.
 
 The default configuration look like this:
+
 ```
 {
     "zone": "europe-west1-b",
     "region": "europe-west1",
     "multiregion": "eu",
+    "pullrequest_branch": "develop",
+    "pullrequest_env": "qa",
     "triggers_env": {
         "dv": {
             "branch": "develop",
@@ -107,9 +109,8 @@ The default configuration look like this:
         },
         "qa": {
             "branch": "develop",
-            "disabled": false,
-            "next": "np",
-            "pr": true
+            "disabled": false
+            "next": "np"
         },
         "np": {
             "branch": "preprod",
@@ -119,8 +120,7 @@ The default configuration look like this:
         "pd": {
             "branch": "master",
             "disabled": false,
-            "next": null,
-            "pr": true
+            "next": null
         }
     }
 }
@@ -130,7 +130,7 @@ Each trigger is created on the project corresponding to env. So it's expected th
 
 ## Usage of Makefile
 
-* Makefile: contains a target to create the main trigger.
+- Makefile: contains a target to create the main trigger.
 
 In the current setup/cicd folder, just run:
 
@@ -139,6 +139,7 @@ make all
 ```
 
 You can also trigger the cicd from the top root folder of the project by doing:
+
 ```shell
 make cicd
 ```

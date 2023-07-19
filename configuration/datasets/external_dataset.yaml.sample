@@ -1,7 +1,0 @@
-# This sample allows you to have a reference to a dataset in
-# another project. That will let you to create resources inside,
-# or use the variables to access the dataset in other resources.
-# !!! It will not verify if the dataset actually exists !!!
-project: "itg-cyrilletest-gbl-ww-${project_env}"
-dataset_id: "test_dataset"
-is_external: true

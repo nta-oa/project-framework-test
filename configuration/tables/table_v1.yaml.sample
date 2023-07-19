@@ -1,9 +1,0 @@
-table_id: table
-dataset: dataset # always the dataset filename even if external
-description: Example of time partitioned table
-version: 1
-schema: # Schema of the table.
-- mode: REQUIRED
-  name: id
-  type: INTEGER
-deletion_protection: false

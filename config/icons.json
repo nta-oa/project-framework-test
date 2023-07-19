@@ -1,0 +1,75 @@
+[
+  {
+    "href": "/static/icons/32x32.png",
+    "rel": "icon",
+    "sizes": "32x32",
+    "type": "image/png"
+  },
+  {
+    "href": "/static/icons/57x57.png",
+    "rel": "icon",
+    "sizes": "57x57",
+    "type": "image/png"
+  },
+  {
+    "href": "/static/icons/76x76.png",
+    "rel": "icon",
+    "sizes": "76x76",
+    "type": "image/png"
+  },
+  {
+    "href": "/static/icons/96x96.png",
+    "rel": "icon",
+    "sizes": "96x96",
+    "type": "image/png"
+  },
+  {
+    "href": "/static/icons/128x128.png",
+    "rel": "icon",
+    "sizes": "128x128",
+    "type": "image/png"
+  },
+  {
+    "href": "/static/icons/192x192.png",
+    "rel": "icon",
+    "sizes": "192x192",
+    "type": "image/png"
+  },
+  {
+    "href": "/static/icons/228x228.png",
+    "rel": "icon",
+    "sizes": "228x228",
+    "type": "image/png"
+  },
+  {
+    "href": "/static/icons/120x120.png",
+    "rel": "apple-touch-icon",
+    "sizes": "120x120",
+    "type": "image/png"
+  },
+  {
+    "href": "/static/icons/152x152.png",
+    "rel": "apple-touch-icon",
+    "sizes": "152x152",
+    "type": "image/png"
+  },
+  {
+    "href": "/static/icons/167x167.png",
+    "rel": "apple-touch-icon",
+    "sizes": "167x167",
+    "type": "image/png"
+  },
+  {
+    "href": "/static/icons/180x180.png",
+    "rel": "apple-touch-icon",
+    "sizes": "180x180",
+    "type": "image/png"
+  },
+  {
+    "href": "/static/icons/512x512.svg",
+    "rel": "mask-icon",
+    "sizes": "512x512",
+    "type": "image/svg+xml",
+    "color": "#ffffff"
+  }
+]

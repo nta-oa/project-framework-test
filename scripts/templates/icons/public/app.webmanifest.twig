@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json.schemastore.org/web-manifest-combined.json",
+  "id": "/",
+  "scope": "/",
+  "name": "{{name}}",
+  "short_name": "{{name}}",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "description": "{{description}}",
+  "orientation": "any",
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "display_override": ["window-controls-overlay"],
+
+  "features": ["Data vizualization"],
+  "categories": ["utility"],
+  "screenshots": [],
+  "shortcuts": [],
+
+  "icons": [
+    {% for icon in icons %}
+    {   
+      "src": "{{ icon.src }}",
+      "sizes": "{{ icon.sizes }}",
+      "type": "{{ icon.type }}"
+    }{{ "," if loop.index != icons.length }}
+    {% endfor %}
+  ]
+}

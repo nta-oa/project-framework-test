@@ -1,0 +1,7 @@
+{
+  "project_env": "qa",
+  "project": "itg-coewebapp-gbl-ww-qa",
+  "project_data": "itg-rgmgt-gbl-ww-np",
+  "domain": "oa-c.fr",
+  "sub-domain": "qa"
+}

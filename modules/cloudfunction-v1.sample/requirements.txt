@@ -1,2 +1,0 @@
-functions-framework==3.3.0  # mandatory for Google Function
-loreal~=0.9.2  # btdpshared PYTHON_LIB

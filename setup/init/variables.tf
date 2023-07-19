@@ -5,26 +5,13 @@
 #     |_|\___|_| |_| \__,_|_| \___/_| |_|_|_|   \_/\__,_|_| |_\__,_|_.__/_\___/__/
 #
 # ======================================================================================== #
-variable "app_name" {
-  type = string
-}
-
 variable "project" {
-  type = string
-}
-
-variable "project_env" {
-  type = string
+  type        = string
+  description = "google cloud project id"
 }
 
 variable "access_token" {
-  type = string
-}
-
-variable "region" {
-  type = string
-}
-
-variable "env_file" {
-  type = string
+  type        = string
+  description = "token used to create gcs bucket to store tf state"
+  sensitive   = true
 }

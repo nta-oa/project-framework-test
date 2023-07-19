@@ -1,0 +1,6 @@
+{
+  "abortDelay": "15s",
+  "auth": {
+    "cacheDuration": "1d"
+  }
+}

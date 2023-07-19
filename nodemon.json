@@ -1,0 +1,19 @@
+{
+  "watch": ["bootstrap/**/*.ts", "config/*.json", "sql/**/*.sql"],
+  "ignore": ["app/**/*"],
+  "ext": "ts,tsx,sql",
+  "execMap": {
+    "ts": "node -r ts-node/register -r tsconfig-paths/register"
+  },
+  "env": {
+    "NODE_ENV": "development",
+    "PORT": "3000",
+    "LOG_LVL": "debug",
+    "REDIS_HOST": "127.0.0.1",
+    "REDIS_PORT": "6379",
+    "PROJECT_ENV": "np",
+    "PROJECT": "itg-coewebapp-gbl-ww-dv",
+    "PROJECT_DATA": "itg-rgmgt-gbl-ww-np",
+    "MOCKED_USER": "Jaap.VERSNEL@loreal.com"
+  }
+}

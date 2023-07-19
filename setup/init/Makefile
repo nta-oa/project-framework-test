@@ -17,38 +17,83 @@ CURRENT_MAKEFILE  := $(lastword $(MAKEFILE_LIST))
 CURRENT_LOCATION  := $(dir $(abspath ../../$(CURRENT_MAKEFILE)))
 ROOT_DIR          := $(CURRENT_LOCATION:%/=%)
 
-include $(ROOT_DIR)/includes/pre-requisites.mk
+
+# ---------------------------------------------------------------------------------------- #
+# -- < Environment fail fast checks > --
+# ---------------------------------------------------------------------------------------- #
+include $(ROOT_DIR)/includes/failfast-checks.mk
 
 
 # ---------------------------------------------------------------------------------------- #
 # -- < Variables > --
 # ---------------------------------------------------------------------------------------- #
-include $(ROOT_DIR)/includes/common-variables.mk
+# -- load variables from ENV
+PROJECT         := $(shell jq -r '.project'                               $(ENV_FILE))
+PROJECT_ENV     := $(shell jq -r --arg env $(ENV) '.project_env // $$env' $(ENV_FILE))
+IS_SANDBOX      := $(shell jq -r '.is_sandbox // false'                   $(ENV_FILE))
+
+# -- bucket definitions
+DEPLOY_BUCKET   := $(APP_NAME_SHORT)-gcs-deploy-eu-$(PROJECT_ENV)
+
+# -- location variables
+ZONE            := $(shell jq -r '.zone   // "europe-west1-b"'                  $(ENV_FILE))
+REGION          := $(shell jq -r '.region // ("$(ZONE)" | sub("-[a-z]$$"; ""))' $(ENV_FILE))
+
+# -- access token to activate properly some APIs
+ACCESS_TOKEN    := $(shell gcloud auth print-access-token --project $(PROJECT))
 
 
 # ---------------------------------------------------------------------------------------- #
-# -- < Help > --
+# -- < Feedback > --
 # ---------------------------------------------------------------------------------------- #
-# -- targets that must always be run
-.PHONY: help all clean deploy iac-clean-state create-bucket create-suffix
+# -- display environment variables
+$(info $(shell printf "=%.s" $$(seq 100)))
+$(info -- $(CURRENT_MAKEFILE): Environment variables)
+$(info $(shell printf "=%.s" $$(seq 100)))
 
-# -- this target is run whenever Makefile is called without any target. To display help
-define HERE_HELP :=
+$(info ENV               = $(ENV))
+$(info ENV_FILE          = $(ENV_FILE))
+$(info APP_NAME          = $(APP_NAME))
+$(info APP_NAME_SHORT    = $(APP_NAME_SHORT))
+$(info PROJECT           = $(PROJECT))
+$(info PROJECT_ENV       = $(PROJECT_ENV))
+$(info ZONE              = $(ZONE))
+$(info REGION            = $(REGION))
+$(info DEPLOY_BUCKET     = $(DEPLOY_BUCKET))
+
+$(info $(shell printf "=%.s" $$(seq 100)))
+
+
+# ---------------------------------------------------------------------------------------- #
+# -- < Targets > --
+# ---------------------------------------------------------------------------------------- #
+# target .PHONY for defining elements that must always be run
+# other targets are locally added to .PHONY
+# ---------------------------------------------------------------------------------------- #
+.PHONY: help all
+
+
+# ---------------------------------------------------------------------------------------- #
+# This target will be called whenever make is called without any target. So this is the
+# default target and must be the first declared.
+# ---------------------------------------------------------------------------------------- #
+define HERE_HELP
 The available targets are:
 --------------------------
 help            Displays the current message
-all             Create the needed resources and deploy the infrastructure from scracth
-                > create-bucket iac-plan-clean iac-deploy create-suffix
-clean           Clean the generated intermediary files
-deploy          Deploy the infrastructure
-
-create-bucket   Creates the deploy bucket to store the infrastructure states for project
-create-suffix   Generate and stores the url suffix for Cloud Run in the deploy bucket.
-                It is unique to a GCP project
+all             Initializes the application (APis enabling, bucket creation, etc.)
+create-bucket   Creates the deployment bucket necessary to store infrastructrue states
+clean           Cleans all the files created by the setup process
+iac-prepare     Prepares the terraform infrastructure by create the variable files
+iac-plan        Produces the terraform plan to visualize what will be changed in the
+                infrastructure
+iac-deploy      Proceeds to the application of the terraform infrastructure
+iac-clean       Cleans the intermediary terraform files to restart the process
+reinit          Remove untracked files from the current git repository
 endef
 export HERE_HELP
 
-help::
+help:
 	@echo "-- Welcome to the initialization setup help"
 	@printf "=%.s" $$(seq 100)
 	@echo ""
@@ -57,77 +102,96 @@ help::
 
 
 # ---------------------------------------------------------------------------------------- #
-# -- < Main Targets > --
+# This target will perform the complete setup of the current repository.
 # ---------------------------------------------------------------------------------------- #
-all: create-bucket iac-plan-clean iac-deploy create-suffix
+all: create-bucket iac-clean iac-deploy
 
+.PHONY: clean
 clean: iac-clean
-deploy: iac-deploy
 
+
+# -- This target triggers the creation of the necessary buckets
+.PHONY: create-bucket
+create-bucket:
+	@echo "[$@] :: creating bucket..."
+	@gsutil ls -p $(PROJECT) gs://$(DEPLOY_BUCKET) 2>/dev/null || \
+		gsutil mb -l EU -p $(PROJECT) gs://$(DEPLOY_BUCKET);
+	@gsutil versioning set on gs://$(DEPLOY_BUCKET);
+	@echo "[$@] :: bucket creation is over."
 
 # ---------------------------------------------------------------------------------------- #
 # -- < IaC > --
 # ---------------------------------------------------------------------------------------- #
 # -- terraform variables declaration
-define HERE_TF_VARS :=
-app_name       = "$(APP_NAME)"
+TF_INIT  = .terraform/terraform.tfstate
+TF_VARS  = terraform.tfvars
+TF_PLAN  = tfplan
+TF_STATE = $(wildcard *.tfstate .terraform/*.tfstate)
+TF_FILES = $(wildcard *.tf)
+
+
+# -- this target will clean the local terraform infrastructure
+.PHONY: iac-clean
+iac-clean:
+	@echo "[$@] :: cleaning the infrastructure"
+	@rm -fr .terraform $(TF_STATE) $(TF_VARS) $(TF_PLAN)
+	@echo "[$@] :: infrastructure cleaning DONE"
+
+# -- this target will initialize the terraform initialization
+.PHONY: iac-init
+iac-init: $(TF_INIT) # provided for convenience
+$(TF_INIT):
+	@set -euo pipefail; \
+	if [ ! -d .terraform ]; then \
+		function remove_me() { if (( $$? != 0 )); then rm -fr .terraform; fi; }; \
+		trap remove_me EXIT; \
+		echo "[iac-init] :: initializing terraform"; \
+		terraform init \
+			-backend-config=bucket=$(DEPLOY_BUCKET) \
+			-backend-config=prefix=terraform-state/init \
+			-input=false; \
+	else \
+		echo "[iac-init] :: terraform already initialized"; \
+	fi;
+
+# -- internal definition for easing changes
+define HERE_TF_VARS
 project        = "$(PROJECT)"
-project_env    = "$(PROJECT_ENV)"
-access_token   = "$(shell gcloud auth print-access-token --project $(PROJECT))"
-region         = "$(REGION)"
-env_file       = "$(ENV_FILE)"
+access_token   = "$(ACCESS_TOKEN)"
 endef
 export HERE_TF_VARS
 
-TF_DIR    := .
-TF_MODULE := init
+# -- this target will create the terraform.tfvars file
+.PHONY: iac-prepare
+iac-prepare: $(TF_VARS) # provided for convenience
+$(TF_VARS): $(TF_INIT)
+	@echo "[iac-prepare] :: generation of $(TF_VARS) file";
+	@echo "$$HERE_TF_VARS" > $(TF_VARS);
+	@echo "[iac-prepare] :: generation of $(TF_VARS) file DONE.";
 
-# -- includes the terraform makefile after declaring tf vars
-include $(ROOT_DIR)/includes/targets/terraform.mk
+# -- this target will create the tfplan file whenever the variables file and any *.tf
+# file have changed
+.PHONY: iac-plan iac-plan-clean
+iac-plan-clean:
+	@rm -f tfplan
 
-# -- this target cleans the terraform state to prepare safe plan
-iac-clean-state::
-	@echo "[$@] :: Cleaning the infrastructure state before plan or deploy"
+iac-plan: $(TF_PLAN) # provided for convenience
+$(TF_PLAN): $(TF_VARS) $(TF_FILES)
+	@echo "[iac-plan] :: planning the iac in $(PROJECT) ($(PROJECT_ENV))";
+	@set -euo pipefail; \
+	terraform plan \
+		-var-file $(shell basename $(TF_VARS)) \
+		-out=$(shell basename $(TF_PLAN));
+	@echo "[iac-plan] :: planning the iac for $(APP_NAME) DONE.";
 
-	@echo "[$@] :: Checking if the app engine needs to be imported..."
-	@if ! (terraform state list | grep "google_app_engine_application.app" >/dev/null); \
-	then \
-		if (gcloud app describe --verbosity=none --project=$(PROJECT) >/dev/null); \
-		then \
-			echo "[$@] :: Import App Engine into state since it's missing..."; \
-			terraform import google_app_engine_application.app $(PROJECT); \
-		fi; \
-	fi;
+# -- this target will only trigger the iac of the current parent
+.PHONY: iac-deploy
+iac-deploy: iac-clean $(TF_PLAN)
+	@echo "[$@] :: applying the infrastructure for $(APP_NAME)"
+	@terraform apply -auto-approve -input=false $(shell basename $(TF_PLAN));
+	@echo "[$@] :: infrastructure applied on $(APP_NAME)"
 
-	@echo "[$@] :: Checking if the GCB log bucket needs to be imported..."
-	@if ! (terraform state list | grep "google_storage_bucket.custom_gcb_log_bucket" >/dev/null); \
-	then \
-		if (gcloud storage buckets list --project=$(PROJECT) | grep "id: cloudbuild-gcs-eu-$(PROJECT)" >/dev/null); \
-		then \
-			echo "[$@] :: Import GCB log bucket into state since it's missing..."; \
-			terraform import google_storage_bucket.custom_gcb_log_bucket $(PROJECT)/cloudbuild-gcs-eu-$(PROJECT); \
-		fi; \
-	fi;
-
-
-# ---------------------------------------------------------------------------------------- #
-# -- < Deploy bucket initialization > --
-# ---------------------------------------------------------------------------------------- #
-# -- This target creates the the deploy bucket for project
-create-bucket:
-	@echo "[$@] :: creating deploy bucket..."
-	@gsutil ls -p $(PROJECT) gs://$(DEPLOY_BUCKET) 2>/dev/null \
-		|| ( \
-			gsutil mb -b on -l EU -p $(PROJECT) gs://$(DEPLOY_BUCKET); \
-			gsutil versioning set on gs://$(DEPLOY_BUCKET); \
-		)
-
-# -- This target triggers the creation of the URL SUFFIX for Modules
-create-suffix:
-	@echo "[$@] :: creating suffix..."
-	@gsutil -q stat gs://$(DEPLOY_BUCKET)/cloudrun-url-suffix/$(REGION) || \
-		gcloud builds submit \
-		--project $(PROJECT) \
-		--config cloudbuild.yaml \
-		--substitutions=_PROJECT=$(PROJECT),_DEPLOY_BUCKET=$(DEPLOY_BUCKET),_REGION=$(REGION) \
-		--suppress-logs
+# -- this target re-initializes the git working tree removing untracked and ignored files
+.PHONY: reinit
+reinit:
+	@rm -rf .terraform* terraform.tfstate* tfplan

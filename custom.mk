@@ -10,6 +10,9 @@
 # current makefile
 custom-clean:
 
-# -- this target aims to provide a custom deploy for the resources
-# current makefile
+# -- this target aims to provide a custom deploy for the resources from the current
+# makefile
 custom-deploy:
+
+# -- this target aims to provide a custom build for the resources managed from the current
+custom-build:

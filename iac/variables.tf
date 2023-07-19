@@ -6,21 +6,32 @@
 #
 # ======================================================================================== #
 variable "app_name" {
-  type = string
+  type        = string
+  description = "full name of the application"
 }
 
 variable "project" {
-  type = string
+  type        = string
+  description = "google cloud project id"
 }
 
 variable "project_env" {
-  type = string
+  type        = string
+  description = "env (dv, qa, np, pd, cicd)"
 }
 
-variable "deploy_bucket" {
-  type = string
+variable "project_data" {
+  type        = string
+  description = "google cloud project where datasets are located"
 }
 
 variable "env_file" {
-  type = string
+  type        = string
+  description = "json env file path"
+}
+
+variable "revision" {
+  type        = string
+  default     = "latest"
+  description = "version from package.json, used to tag docker container"
 }

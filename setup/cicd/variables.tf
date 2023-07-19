@@ -20,7 +20,3 @@ variable "env_file" {
 variable "protected_files" {
   type = string
 }
-
-variable "modules" {
-  type = string
-}

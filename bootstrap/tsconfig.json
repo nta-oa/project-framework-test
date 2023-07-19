@@ -1,0 +1,20 @@
+{
+  "extends": "../tsconfig.json",
+  "include": ["./**/*"],
+  "compilerOptions": {
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2022",
+    "noImplicitAny": true,
+    "moduleResolution": "node",
+    "outDir": "../build",
+    "baseUrl": ".",
+    "paths": {
+      "config/*": ["../config/*"],
+      "pkg.json": ["../package.json"]
+    },
+    "noEmit": false
+  },
+  "$schema": "https://json.schemastore.org/tsconfig.json"
+}

@@ -6,6 +6,7 @@
 #
 # ======================================================================================== #
 resource "null_resource" "md5checks" {
+  provider = null
   triggers = {
     always_run = timestamp()
   }
@@ -22,22 +23,9 @@ EOT
  * Gives access to the cloud build GCB to read bucket objects.
  */
 resource "google_storage_bucket_iam_member" "deploy_readers" {
-  provider = google
+  provider = google-beta
   for_each = local.triggers_env
   bucket   = local.deploy_bucket
   role     = "roles/storage.objectViewer"
   member   = "serviceAccount:${data.google_project.env_projects[each.key].number}@cloudbuild.gserviceaccount.com"
-}
-
-
-/**
- * Gives access to the cloud build GCB user-specified SAs to read bucket objects
- * in the cicd deployment bucket.
- */
-resource "google_storage_bucket_iam_member" "deploy_readers_gcb" {
-  provider = google
-  for_each = local.triggers_env_conf
-  bucket   = local.deploy_bucket
-  role     = "roles/storage.objectViewer"
-  member   = "serviceAccount:${local.app_name_short}-sa-cloudbuild-${each.value.project_env}@${each.value.project}.iam.gserviceaccount.com"
 }

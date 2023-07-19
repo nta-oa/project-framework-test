@@ -1,0 +1,4 @@
+{
+  "repository_name": "{{ githubRepo }}",
+  "owner": "{{ githubOwner }}"
+}

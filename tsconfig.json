@@ -1,0 +1,27 @@
+{
+  "include": ["remix.env.d.ts", "**/*.ts", "**/*.tsx"],
+  "compilerOptions": {
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "jsx": "react-jsx",
+    "types": ["vitest/globals"],
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "target": "ES2022",
+    "strict": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["./app/*"],
+      "config/*": ["./config/*"],
+      "_tests/*": ["./_tests/*"],
+      "pkg.json": ["./package.json"]
+    },
+    "noEmit": true
+  },
+  "$schema": "https://json.schemastore.org/tsconfig.json"
+}
